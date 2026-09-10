@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette — dérivée du vert du logo (#0D6C55) */
+  --color-ink: #12211c;
+  --color-ink-soft: #4a5a53;
+  --color-green-900: #06392e;
+  --color-green-800: #0a5443;
+  --color-green-700: #0d6c55;
+  --color-green-500: #17886b;
+  --color-green-100: #d9ebe4;
+  --color-sand: #f4efe3;
+  --color-sand-deep: #e6dcc7;
+  --color-gold: #c9a362;
+  --color-paper: #fffdf8;
+
+  --font-sans: var(--font-rubik), system-ui, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
+
+  --radius-arch: 2rem;
+}
+
+/* L'arabe passe sur Rubik pour tous les niveaux : Cormorant ne couvre pas l'arabe */
+[dir="rtl"] .font-display {
+  font-family: var(--font-rubik), system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Curseur personnalisé : on masque le natif seulement si un vrai pointeur existe */
+@media (pointer: fine) {
+  body.has-custom-cursor,
+  body.has-custom-cursor * {
+    cursor: none;
+  }
+}
+
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1.5px solid #fff;
+  border-radius: 999px;
+  mix-blend-mode: difference;
+  transition: width 0.25s ease, height 0.25s ease, margin 0.25s ease,
+    opacity 0.2s ease, border-width 0.25s ease;
+}
+
+.cursor-ring[data-state="link"] {
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-width: 2px;
+}
+
+.cursor-ring[data-state="hidden"] {
+  opacity: 0;
+}
+
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  background: #fff;
+  border-radius: 999px;
+  mix-blend-mode: difference;
+}
+
+/* Séquence d'ouverture — un seul moment orchestré, au chargement */
+@keyframes arch-open {
+  from {
+    clip-path: inset(100% 0 0 0);
+    transform: scale(1.06);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-arch {
+  animation: arch-open 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-glow {
+  animation: glow 2s ease 0.5s both;
+}
+
+.anim-rise {
+  animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.delay-1 { animation-delay: 0.55s; }
+.delay-2 { animation-delay: 0.7s; }
+.delay-3 { animation-delay: 0.85s; }
+.delay-4 { animation-delay: 1s; }
+
+/* Révélation au scroll, pilotée par IntersectionObserver */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .anim-arch,
+  .anim-rise,
+  .anim-glow {
+    animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .cursor-ring,
+  .cursor-dot {
+    display: none;
+  }
+  body.has-custom-cursor,
+  body.has-custom-cursor * {
+    cursor: auto;
+  }
+}

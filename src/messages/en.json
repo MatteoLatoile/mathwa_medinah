@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "title": "Mathwa — Long-term rentals in Medina",
+    "description": "Apartments for monthly or yearly rent in Medina. Listings checked on the ground, direct contact on WhatsApp."
+  },
+  "nav": {
+    "listings": "Apartments",
+    "commitments": "Our commitments",
+    "contact": "Message us",
+    "language": "Language"
+  },
+  "hero": {
+    "title": "Find your home in Medina",
+    "lead": "Long-term apartment rentals, checked on the ground, with direct contact on WhatsApp. No forms, no extra middleman.",
+    "ctaListings": "Browse apartments",
+    "ctaWhatsapp": "Message on WhatsApp",
+    "scroll": "Scroll"
+  },
+  "commitments": {
+    "title": "What you can count on",
+    "lead": "There is no payment and no booking on this site. These five rules are what make it trustworthy.",
+    "items": [
+      {
+        "title": "Seen before it is published",
+        "body": "Every listing marked verified has been visited in person. The photos match the apartment."
+      },
+      {
+        "title": "An answer within 24 hours",
+        "body": "You write on WhatsApp, someone answers. In Arabic, French, English or Russian."
+      },
+      {
+        "title": "The price shown is the price asked",
+        "body": "Monthly or yearly rent, stated plainly. Nothing added at signing time."
+      },
+      {
+        "title": "What is included, written out",
+        "body": "Water, electricity, internet, furniture, cleaning: every listing says what is included and what is not."
+      },
+      {
+        "title": "Rented places come down",
+        "body": "As soon as an apartment is taken, it leaves the list. You only ever contact what is available."
+      }
+    ]
+  },
+  "audience": {
+    "title": "Moving to Medina?",
+    "lead": "Looking for a home from abroad, without Arabic and without knowing the districts, is hard. That is where we come in.",
+    "students": {
+      "title": "University student",
+      "body": "Tell us your budget and how long a commute to campus works for you. We will point you to what fits."
+    },
+    "families": {
+      "title": "Family settling in",
+      "body": "Number of bedrooms, distance to the Haram, a quiet street: tell us what matters to you."
+    },
+    "cta": "Tell us what you are looking for"
+  },
+  "how": {
+    "title": "How it works",
+    "steps": [
+      {
+        "title": "You filter",
+        "body": "District, budget, number of bedrooms, what the rent covers."
+      },
+      {
+        "title": "You write",
+        "body": "The WhatsApp button opens a chat with the listing reference already filled in."
+      },
+      {
+        "title": "You visit",
+        "body": "We give you the exact address and arrange the viewing with the owner."
+      }
+    ]
+  },
+  "closing": {
+    "title": "A question before you start?",
+    "body": "Write to us even if you have nothing specific in mind. It is usually faster than searching alone.",
+    "cta": "Message on WhatsApp"
+  },
+  "listings": {
+    "title": "Apartments for rent",
+    "lead": "Monthly or yearly rentals in Medina.",
+    "count": "{count, plural, =0 {No apartments} one {# apartment} other {# apartments}}",
+    "empty": {
+      "title": "The first listings are on their way",
+      "body": "The site has just opened. If you are already searching, write to us: we often have places before they appear here.",
+      "cta": "Message on WhatsApp"
+    }
+  },
+  "filters": {
+    "district": "District",
+    "allDistricts": "All districts",
+    "priceMin": "Min price",
+    "priceMax": "Max price",
+    "period": "Monthly or yearly",
+    "rooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "floor": "Floor",
+    "furnished": "Furnished",
+    "more": "More filters",
+    "reset": "Clear filters",
+    "viewList": "List",
+    "viewMap": "Map"
+  },
+  "badges": {
+    "verified": "Verified",
+    "notVerified": "Not verified",
+    "rented": "Rented",
+    "perMonth": "per month",
+    "perYear": "per year"
+  },
+  "footer": {
+    "tagline": "Long-term rentals in Medina.",
+    "admin": "Admin",
+    "rights": "All rights reserved."
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "title": "Mathwa — Location longue durée à Médine",
+    "description": "Appartements à louer au mois ou à l'année à Médine. Annonces vérifiées sur place, contact direct par WhatsApp."
+  },
+  "nav": {
+    "listings": "Appartements",
+    "commitments": "Nos engagements",
+    "contact": "Nous écrire",
+    "language": "Langue"
+  },
+  "hero": {
+    "title": "Trouver son logement à Médine",
+    "lead": "Des appartements en location longue durée, vérifiés sur place, avec un contact direct par WhatsApp. Pas de formulaire, pas d'intermédiaire en plus.",
+    "ctaListings": "Voir les appartements",
+    "ctaWhatsapp": "Écrire sur WhatsApp",
+    "scroll": "Faire défiler"
+  },
+  "commitments": {
+    "title": "Ce sur quoi vous pouvez compter",
+    "lead": "Il n'y a ni paiement ni réservation sur ce site. Ce qui le rend fiable, ce sont ces cinq règles.",
+    "items": [
+      {
+        "title": "Visité avant d'être publié",
+        "body": "Chaque annonce marquée vérifiée a été vue en personne. Les photos correspondent au logement."
+      },
+      {
+        "title": "Une réponse sous 24 heures",
+        "body": "Vous écrivez sur WhatsApp, quelqu'un vous répond. En arabe, français, anglais ou russe."
+      },
+      {
+        "title": "Le prix affiché est le prix demandé",
+        "body": "Loyer mensuel ou annuel, annoncé clairement. Aucun frais ajouté au moment de signer."
+      },
+      {
+        "title": "Ce qui est compris, écrit noir sur blanc",
+        "body": "Eau, électricité, internet, mobilier, ménage : chaque annonce dit ce qui est inclus et ce qui ne l'est pas."
+      },
+      {
+        "title": "Les logements loués disparaissent",
+        "body": "Dès qu'un appartement est pris, il quitte la liste. Vous ne contactez que du disponible."
+      }
+    ]
+  },
+  "audience": {
+    "title": "Vous arrivez à Médine ?",
+    "lead": "Chercher un logement depuis l'étranger, sans parler arabe et sans connaître les quartiers, c'est difficile. C'est exactement là qu'on intervient.",
+    "students": {
+      "title": "Étudiant à l'université",
+      "body": "Dites-nous votre budget et le temps de trajet acceptable jusqu'au campus. On vous oriente vers ce qui correspond."
+    },
+    "families": {
+      "title": "Famille qui s'installe",
+      "body": "Nombre de chambres, proximité du Haram, quartier calme : précisez ce qui compte pour vous."
+    },
+    "cta": "Dites-nous ce que vous cherchez"
+  },
+  "how": {
+    "title": "Comment ça se passe",
+    "steps": [
+      {
+        "title": "Vous filtrez",
+        "body": "Quartier, budget, nombre de chambres, ce qui est inclus dans le loyer."
+      },
+      {
+        "title": "Vous écrivez",
+        "body": "Le bouton WhatsApp ouvre une conversation avec la référence de l'annonce déjà remplie."
+      },
+      {
+        "title": "Vous visitez",
+        "body": "On vous donne l'adresse exacte et on organise la visite avec le propriétaire."
+      }
+    ]
+  },
+  "closing": {
+    "title": "Une question avant de commencer ?",
+    "body": "Écrivez-nous, même sans idée précise. C'est souvent plus rapide que de chercher seul.",
+    "cta": "Écrire sur WhatsApp"
+  },
+  "listings": {
+    "title": "Appartements à louer",
+    "lead": "Location au mois ou à l'année, à Médine.",
+    "count": "{count, plural, =0 {Aucun appartement} one {# appartement} other {# appartements}}",
+    "empty": {
+      "title": "Les premières annonces arrivent",
+      "body": "Le site vient d'ouvrir. Si vous cherchez déjà, écrivez-nous : on a souvent des logements avant qu'ils soient publiés ici.",
+      "cta": "Écrire sur WhatsApp"
+    }
+  },
+  "filters": {
+    "district": "Quartier",
+    "allDistricts": "Tous les quartiers",
+    "priceMin": "Prix min",
+    "priceMax": "Prix max",
+    "period": "Mensuel ou annuel",
+    "rooms": "Chambres",
+    "bathrooms": "Salles de bain",
+    "floor": "Étage",
+    "furnished": "Meublé",
+    "more": "Plus de filtres",
+    "reset": "Effacer les filtres",
+    "viewList": "Liste",
+    "viewMap": "Carte"
+  },
+  "badges": {
+    "verified": "Vérifiée",
+    "notVerified": "Non vérifiée",
+    "rented": "Loué",
+    "perMonth": "par mois",
+    "perYear": "par an"
+  },
+  "footer": {
+    "tagline": "Location longue durée à Médine.",
+    "admin": "Espace admin",
+    "rights": "Tous droits réservés."
+  }
+}
