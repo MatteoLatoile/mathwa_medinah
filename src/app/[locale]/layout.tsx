@@ -42,8 +42,10 @@ export async function generateMetadata({
     title: t("title"),
     description: t("description"),
     icons: {
-      icon: "/logo-mark.svg",
-    },
+    icon: "/logo-mark.svg",
+    shortcut: "/logo-mark.svg",
+    apple: "/logo-mark.svg",
+  },
   };
 }
 
