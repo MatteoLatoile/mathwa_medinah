@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { notFound } from "next/navigation";
+
 import {
   hasLocale,
   NextIntlClientProvider,
@@ -19,6 +20,7 @@ import {
 } from "@/i18n/routing";
 
 import CustomCursor from "@/components/CustomCursor";
+import IntroScene from "@/components/IntroScene";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({
@@ -29,23 +31,36 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{
+    locale: string;
+  }>;
 }): Promise<Metadata> {
   const { locale } = await params;
 
-  const t = await getTranslations({
-    locale,
-    namespace: "meta",
-  });
+  if (
+    !hasLocale(
+      routing.locales,
+      locale
+    )
+  ) {
+    return {};
+  }
+
+  const t =
+    await getTranslations({
+      locale,
+      namespace: "meta",
+    });
 
   return {
     title: t("title"),
     description: t("description"),
+
     icons: {
-    icon: "/logo-mark.svg",
-    shortcut: "/logo-mark.svg",
-    apple: "/logo-mark.svg",
-  },
+      icon: "/logo-mark.svg",
+      shortcut: "/logo-mark.svg",
+      apple: "/logo-mark.svg",
+    },
   };
 }
 
@@ -54,28 +69,41 @@ export default async function LocaleLayout({
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
 
-  if (!hasLocale(routing.locales, locale)) {
+  params: Promise<{
+    locale: string;
+  }>;
+}) {
+  const { locale } =
+    await params;
+
+  if (
+    !hasLocale(
+      routing.locales,
+      locale
+    )
+  ) {
     notFound();
   }
 
   setRequestLocale(locale);
 
-  const dir = rtlLocales.includes(locale as Locale)
-    ? "rtl"
-    : "ltr";
+  const dir =
+    rtlLocales.includes(
+      locale as Locale
+    )
+      ? "rtl"
+      : "ltr";
 
   return (
     <NextIntlClientProvider>
       <div
         lang={locale}
         dir={dir}
-        className="min-h-screen"
       >
         <CustomCursor />
+
+        <IntroScene />
 
         {children}
       </div>
