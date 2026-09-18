@@ -19,6 +19,8 @@ type Listing = {
   district: string;
   location_label: string | null;
   property_type: string;
+  occupancy_type: string;
+  nabawi_distance_km: number | null;
   bedrooms: number;
   bathrooms: number;
   living_rooms: number;
@@ -110,6 +112,15 @@ export default function EditListingForm({
           String(form.get("location_label") || "").trim() || null,
 
         property_type: String(form.get("property_type")),
+
+        occupancy_type: String(
+          form.get("occupancy_type") || "private"
+        ),
+
+        nabawi_distance_km:
+          String(form.get("nabawi_distance_km") || "") !== ""
+            ? Number(form.get("nabawi_distance_km"))
+            : null,
 
         bedrooms: Number(form.get("bedrooms") || 0),
         bathrooms: Number(form.get("bathrooms") || 0),
@@ -233,7 +244,7 @@ export default function EditListingForm({
 
   async function deleteListing() {
     const confirmDelete = window.confirm(
-      "Supprimer dÃ©finitivement cet appartement ?"
+      "Supprimer définitivement cet appartement ?"
     );
 
     if (!confirmDelete) return;
@@ -279,7 +290,7 @@ export default function EditListingForm({
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
 
           <label className="text-sm">
-            Titre franÃ§ais
+            Titre français
             <input
               name="title_fr"
               required
@@ -294,7 +305,7 @@ export default function EditListingForm({
           </label>
 
           <label className="text-sm">
-            Localisation affichÃ©e
+            Localisation affichée
             <input
               name="location_label"
               defaultValue={listing.location_label ?? ""}
@@ -309,15 +320,69 @@ export default function EditListingForm({
               defaultValue={listing.property_type}
               className={input}
             >
-              <option value="apartment">Appartement</option>
-              <option value="studio">Studio</option>
-              <option value="house">Maison</option>
-              <option value="room">Chambre</option>
+              <option value="apartment">
+                Appartement
+              </option>
+
+              <option value="studio">
+                Studio
+              </option>
+
+              <option value="house">
+                Maison
+              </option>
+
+              <option value="room">
+                Chambre
+              </option>
             </select>
           </label>
 
           <label className="text-sm">
+            Type de location
+
+            <select
+              name="occupancy_type"
+              defaultValue={
+                listing.occupancy_type ??
+                "private"
+              }
+              className={input}
+            >
+              <option value="private">
+                Logement entier
+              </option>
+
+              <option value="shared_women">
+                Colocation femmes
+              </option>
+
+              <option value="shared_men">
+                Colocation hommes
+              </option>
+            </select>
+          </label>
+
+          <label className="text-sm">
+            Distance du Masjid Nabawi (km)
+
+            <input
+              name="nabawi_distance_km"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={
+                listing.nabawi_distance_km ??
+                ""
+              }
+              placeholder="Ex. 2.5"
+              className={input}
+            />
+          </label>
+
+          <label className="text-sm">
             Chambres
+
             <input
               name="bedrooms"
               type="number"
@@ -329,6 +394,7 @@ export default function EditListingForm({
 
           <label className="text-sm">
             Salles de bain
+
             <input
               name="bathrooms"
               type="number"
@@ -340,6 +406,7 @@ export default function EditListingForm({
 
           <label className="text-sm">
             Salons
+
             <input
               name="living_rooms"
               type="number"
@@ -350,7 +417,8 @@ export default function EditListingForm({
           </label>
 
           <label className="text-sm">
-            Ã‰tage
+            Étage
+
             <input
               name="floor"
               type="number"
@@ -360,7 +428,8 @@ export default function EditListingForm({
           </label>
 
           <label className="text-sm">
-            Surface mÂ²
+            Surface m²
+
             <input
               name="area_m2"
               type="number"
@@ -373,6 +442,7 @@ export default function EditListingForm({
       </section>
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
+
         <h2 className="font-display text-2xl text-ink">
           Prix
         </h2>
@@ -381,30 +451,42 @@ export default function EditListingForm({
 
           <label className="text-sm">
             Mensuel
+
             <input
               name="monthly_price"
               type="number"
-              defaultValue={listing.monthly_price ?? ""}
+              defaultValue={
+                listing.monthly_price ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="text-sm">
             Annuel
+
             <input
               name="yearly_price"
               type="number"
-              defaultValue={listing.yearly_price ?? ""}
+              defaultValue={
+                listing.yearly_price ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="text-sm">
             Caution
+
             <input
               name="deposit"
               type="number"
-              defaultValue={listing.deposit ?? ""}
+              defaultValue={
+                listing.deposit ??
+                ""
+              }
               className={input}
             />
           </label>
@@ -413,18 +495,27 @@ export default function EditListingForm({
       </section>
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
+
         <h2 className="font-display text-2xl text-ink">
-          CaractÃ©ristiques
+          Caractéristiques
         </h2>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
           {[
-            ["furnished", "MeublÃ©", listing.furnished],
-            ["water_included", "Eau incluse", listing.water_included],
+            [
+              "furnished",
+              "Meublé",
+              listing.furnished,
+            ],
+            [
+              "water_included",
+              "Eau incluse",
+              listing.water_included,
+            ],
             [
               "electricity_included",
-              "Ã‰lectricitÃ© incluse",
+              "Électricité incluse",
               listing.electricity_included,
             ],
             [
@@ -434,7 +525,7 @@ export default function EditListingForm({
             ],
             [
               "cleaning_included",
-              "MÃ©nage inclus",
+              "Ménage inclus",
               listing.cleaning_included,
             ],
             [
@@ -442,31 +533,68 @@ export default function EditListingForm({
               "Climatisation",
               listing.air_conditioning,
             ],
-            ["elevator", "Ascenseur", listing.elevator],
-            ["parking", "Parking", listing.parking],
-            ["kitchen", "Cuisine", listing.kitchen],
-            ["verified", "VÃ©rifiÃ©e", listing.verified],
-            ["featured", "Mise en avant", listing.featured],
-          ].map(([name, label, checked]) => (
-            <label
-              key={String(name)}
-              className="flex items-center gap-3 rounded-xl border border-ink/10 p-4 text-sm"
-            >
-              <input
-                type="checkbox"
-                name={String(name)}
-                defaultChecked={Boolean(checked)}
-                className="h-4 w-4 accent-green-700"
-              />
+            [
+              "elevator",
+              "Ascenseur",
+              listing.elevator,
+            ],
+            [
+              "parking",
+              "Parking",
+              listing.parking,
+            ],
+            [
+              "kitchen",
+              "Cuisine",
+              listing.kitchen,
+            ],
+            [
+              "verified",
+              "Vérifiée",
+              listing.verified,
+            ],
+            [
+              "featured",
+              "Mise en avant",
+              listing.featured,
+            ],
+          ].map(
+            (
+              [
+                name,
+                label,
+                checked,
+              ]
+            ) => (
+              <label
+                key={String(name)}
+                className="flex items-center gap-3 rounded-xl border border-ink/10 p-4 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  name={String(name)}
+                  defaultChecked={
+                    Boolean(
+                      checked
+                    )
+                  }
+                  className="h-4 w-4 accent-green-700"
+                />
 
-              {String(label)}
-            </label>
-          ))}
+                {
+                  String(
+                    label
+                  )
+                }
+              </label>
+            )
+          )}
 
         </div>
       </section>
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
+
         <h2 className="font-display text-2xl text-ink">
           Textes
         </h2>
@@ -474,66 +602,94 @@ export default function EditListingForm({
         <div className="mt-6 space-y-5">
 
           <label className="block text-sm">
-            Description franÃ§aise
+            Description française
+
             <textarea
               name="description_fr"
-              defaultValue={listing.description_fr ?? ""}
+              defaultValue={
+                listing.description_fr ??
+                ""
+              }
               className={textarea}
             />
           </label>
 
           <label className="block text-sm">
             Titre arabe
+
             <input
               dir="rtl"
               name="title_ar"
-              defaultValue={listing.title_ar ?? ""}
+              defaultValue={
+                listing.title_ar ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="block text-sm">
             Description arabe
+
             <textarea
               dir="rtl"
               name="description_ar"
-              defaultValue={listing.description_ar ?? ""}
+              defaultValue={
+                listing.description_ar ??
+                ""
+              }
               className={textarea}
             />
           </label>
 
           <label className="block text-sm">
             Titre anglais
+
             <input
               name="title_en"
-              defaultValue={listing.title_en ?? ""}
+              defaultValue={
+                listing.title_en ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="block text-sm">
             Description anglaise
+
             <textarea
               name="description_en"
-              defaultValue={listing.description_en ?? ""}
+              defaultValue={
+                listing.description_en ??
+                ""
+              }
               className={textarea}
             />
           </label>
 
           <label className="block text-sm">
             Titre russe
+
             <input
               name="title_ru"
-              defaultValue={listing.title_ru ?? ""}
+              defaultValue={
+                listing.title_ru ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="block text-sm">
             Description russe
+
             <textarea
               name="description_ru"
-              defaultValue={listing.description_ru ?? ""}
+              defaultValue={
+                listing.description_ru ??
+                ""
+              }
               className={textarea}
             />
           </label>
@@ -542,72 +698,105 @@ export default function EditListingForm({
       </section>
 
       <section className="rounded-3xl border border-gold/30 bg-paper p-6 sm:p-8">
+
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold">
-          PrivÃ©
+          Privé
         </p>
 
         <h2 className="mt-2 font-display text-2xl text-ink">
-          PropriÃ©taire & commission
+          Propriétaire & commission
         </h2>
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
 
           <label className="text-sm">
-            PropriÃ©taire
+            Propriétaire
+
             <input
               name="owner_name"
-              defaultValue={privateData?.owner_name ?? ""}
+              defaultValue={
+                privateData?.owner_name ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="text-sm">
-            TÃ©lÃ©phone
+            Téléphone
+
             <input
               name="owner_phone"
-              defaultValue={privateData?.owner_phone ?? ""}
+              defaultValue={
+                privateData?.owner_phone ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="text-sm">
             WhatsApp
+
             <input
               name="owner_whatsapp"
-              defaultValue={privateData?.owner_whatsapp ?? ""}
+              defaultValue={
+                privateData?.owner_whatsapp ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="text-sm">
             Adresse exacte
+
             <input
               name="exact_address"
-              defaultValue={privateData?.exact_address ?? ""}
+              defaultValue={
+                privateData?.exact_address ??
+                ""
+              }
               className={input}
             />
           </label>
 
           <label className="text-sm">
             Type de commission
+
             <select
               name="commission_type"
-              defaultValue={privateData?.commission_type ?? ""}
+              defaultValue={
+                privateData?.commission_type ??
+                ""
+              }
               className={input}
             >
-              <option value="">Aucune</option>
-              <option value="fixed">Montant fixe</option>
-              <option value="percentage">Pourcentage</option>
+              <option value="">
+                Aucune
+              </option>
+
+              <option value="fixed">
+                Montant fixe
+              </option>
+
+              <option value="percentage">
+                Pourcentage
+              </option>
             </select>
           </label>
 
           <label className="text-sm">
             Commission
+
             <input
               name="commission_value"
               type="number"
               step="0.01"
-              defaultValue={privateData?.commission_value ?? ""}
+              defaultValue={
+                privateData?.commission_value ??
+                ""
+              }
               className={input}
             />
           </label>
@@ -615,38 +804,63 @@ export default function EditListingForm({
         </div>
 
         <label className="mt-5 block text-sm">
-          Notes propriÃ©taire
+          Notes propriétaire
+
           <textarea
             name="owner_notes"
-            defaultValue={privateData?.owner_notes ?? ""}
+            defaultValue={
+              privateData?.owner_notes ??
+              ""
+            }
             className={textarea}
           />
         </label>
 
         <label className="mt-5 block text-sm">
-          Notes privÃ©es
+          Notes privées
+
           <textarea
             name="private_notes"
-            defaultValue={privateData?.private_notes ?? ""}
+            defaultValue={
+              privateData?.private_notes ??
+              ""
+            }
             className={textarea}
           />
         </label>
+
       </section>
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6">
+
         <label className="text-sm font-medium">
           Statut
+
           <select
             name="status"
-            defaultValue={listing.status}
+            defaultValue={
+              listing.status
+            }
             className={input}
           >
-            <option value="draft">Brouillon</option>
-            <option value="published">PubliÃ©e</option>
-            <option value="rented">LouÃ©e</option>
-            <option value="archived">ArchivÃ©e</option>
+            <option value="draft">
+              Brouillon
+            </option>
+
+            <option value="published">
+              Publiée
+            </option>
+
+            <option value="rented">
+              Louée
+            </option>
+
+            <option value="archived">
+              Archivée
+            </option>
           </select>
         </label>
+
       </section>
 
       {error && (
@@ -659,8 +873,12 @@ export default function EditListingForm({
 
         <button
           type="button"
-          onClick={deleteListing}
-          disabled={loading}
+          onClick={
+            deleteListing
+          }
+          disabled={
+            loading
+          }
           className="rounded-full border border-red-200 px-6 py-3 text-sm font-medium text-red-700 hover:bg-red-50"
         >
           Supprimer
@@ -677,13 +895,18 @@ export default function EditListingForm({
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={
+              loading
+            }
             className="rounded-full bg-green-700 px-8 py-3 text-sm font-medium text-paper hover:bg-green-800 disabled:opacity-50"
           >
-            {loading ? "Enregistrement..." : "Enregistrer"}
+            {loading
+              ? "Enregistrement..."
+              : "Enregistrer"}
           </button>
 
         </div>
+
       </div>
 
     </form>
