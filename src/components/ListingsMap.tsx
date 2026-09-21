@@ -30,6 +30,8 @@ import type {
   Listing,
 } from "./ListingCard";
 
+import RiyalIcon from "@/components/RiyalIcon";
+
 type District = {
   id: string;
 
@@ -1467,17 +1469,17 @@ function MapListingCard({
 
           <div>
 
-            <p className="font-display text-[21px] font-medium leading-none text-green-700">
+            <p className="flex items-baseline gap-1.5 font-display text-[21px] font-medium leading-none text-green-700">
 
-              <span aria-hidden="true">
-                {"\u20C1"}
-              </span>{" "}
+              <RiyalIcon className="h-[0.8em] w-[0.8em]" />
 
-              {Number(
-                listing.price
-              ).toLocaleString(
-                localeFormat
-              )}
+              <span>
+                {Number(
+                  listing.price
+                ).toLocaleString(
+                  localeFormat
+                )}
+              </span>
 
             </p>
 

@@ -40,6 +40,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import ListingGallery from "@/components/ListingGallery";
+import RiyalIcon from "@/components/RiyalIcon";
 
 import {
   WhatsappIcon,
@@ -1477,11 +1478,7 @@ export default async function ListingPage({
 
                     <p className="mt-1.5 font-display text-4xl font-medium text-green-700">
 
-                      <span
-                        aria-hidden="true"
-                      >
-                        {"\u20C1"}
-                      </span>{" "}
+                      <RiyalIcon className="me-1 h-[0.82em] w-[0.82em] align-[-0.05em]" />
 
                       {price.toLocaleString(
                         localeFormat
@@ -1509,9 +1506,9 @@ export default async function ListingPage({
                           text.deposit
                         }
 
-                        <span className="font-medium text-ink">
+                        <span className="inline-flex items-center font-medium text-ink">
 
-                          {"\u20C1"}{" "}
+                          <RiyalIcon className="me-1 h-[0.9em] w-[0.9em]" />
 
                           {Number(
                             listing.deposit

@@ -18,6 +18,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
+import RiyalIcon from "@/components/RiyalIcon";
+
 export type FilterValues = {
   district: string;
   priceMin: string;
@@ -407,8 +409,8 @@ export default function FilterBar({
             )}
           />
 
-          <span className="pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-ink-soft/50">
-            ﷼
+          <span className="pointer-events-none absolute end-3.5 top-1/2 flex -translate-y-1/2 items-center text-ink-soft/50">
+            <RiyalIcon className="h-4 w-4" />
           </span>
 
         </div>
@@ -447,8 +449,8 @@ export default function FilterBar({
             )}
           />
 
-          <span className="pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-ink-soft/50">
-            ﷼
+          <span className="pointer-events-none absolute end-3.5 top-1/2 flex -translate-y-1/2 items-center text-ink-soft/50">
+            <RiyalIcon className="h-4 w-4" />
           </span>
 
         </div>

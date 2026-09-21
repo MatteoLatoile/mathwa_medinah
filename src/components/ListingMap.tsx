@@ -13,6 +13,7 @@ import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
 import type { Listing } from "./ListingCard";
+import RiyalIcon from "@/components/RiyalIcon";
 
 type DistrictPoint = {
   name: string;
@@ -692,9 +693,9 @@ export default function ListingsMap({
                       }
                     </p>
 
-                    <p className="mt-4 font-display text-xl text-green-700">
-                      {"\u20C1"}{" "}
-                      {listing.price.toLocaleString()}
+                    <p className="mt-4 flex items-baseline gap-1.5 font-display text-xl text-green-700">
+                      <RiyalIcon className="h-[0.8em] w-[0.8em]" />
+                      <span>{listing.price.toLocaleString()}</span>
                     </p>
                   </div>
                 </Link>

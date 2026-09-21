@@ -20,6 +20,8 @@ import {
   ArchBullet,
 } from "./icons";
 
+import RiyalIcon from "@/components/RiyalIcon";
+
 export type Listing = {
   id: string;
   title: string;
@@ -246,11 +248,9 @@ export default function ListingCard({
 
         {/* PRIX */}
 
-        <p className="mt-4 flex items-baseline gap-1 border-t border-ink/8 pt-4 font-display text-2xl font-medium text-green-700">
+        <p className="mt-4 flex items-baseline gap-1.5 border-t border-ink/8 pt-4 font-display text-2xl font-medium text-green-700">
 
-          <span aria-hidden="true">
-            {"\u20C1"}
-          </span>
+          <RiyalIcon className="h-[0.8em] w-[0.8em]" />
 
           <span>
             {listing.price.toLocaleString(
