@@ -94,7 +94,9 @@ export default function Header({
   const [
     solid,
     setSolid,
-  ] = useState(!overHero);
+  ] = useState(
+    !overHero
+  );
 
   const [
     languageOpen,
@@ -112,6 +114,15 @@ export default function Header({
         language.code ===
         locale
     ) ?? languages[0];
+
+  const districtsLabel =
+    locale === "ar"
+      ? "الأحياء"
+      : locale === "en"
+        ? "Neighborhoods"
+        : locale === "ru"
+          ? "Районы"
+          : "Quartiers";
 
   useEffect(() => {
     if (!overHero) {
@@ -215,6 +226,13 @@ export default function Header({
             className="hidden text-sm text-sand/80 transition-colors hover:text-sand sm:block"
           >
             {t("listings")}
+          </Link>
+
+          <Link
+            href="/quartiers"
+            className="hidden text-sm text-sand/80 transition-colors hover:text-sand sm:block"
+          >
+            {districtsLabel}
           </Link>
 
           {/* LANGUES */}
@@ -343,6 +361,7 @@ export default function Header({
               )}
 
             </div>
+
           </div>
 
           {/* WHATSAPP */}
