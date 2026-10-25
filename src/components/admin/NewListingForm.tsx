@@ -34,6 +34,18 @@ type VideoPresignResponse = {
   error?: string;
 };
 
+type TelegramPublishResponse = {
+  ok?: boolean;
+  error?: string;
+  successCount?: number;
+  failedCount?: number;
+  results?: {
+    locale: string;
+    success: boolean;
+    error?: string;
+  }[];
+};
+
 const MAX_VIDEO_SIZE =
   300 *
   1024 *
@@ -734,13 +746,6 @@ export default function NewListingForm({
             : 0
         );
 
-        /*
-         * Transformation automatique :
-         * - redimensionnement
-         * - filigrane
-         * - WebP
-         * - compression
-         */
         const processedImage =
           await processImageForMathwa(
             file
@@ -864,13 +869,6 @@ export default function NewListingForm({
       if (
         video
       ) {
-        /*
-         * Transformation locale avec FFmpeg :
-         * - MP4
-         * - H.264
-         * - compression
-         * - watermark
-         */
         const processedVideo =
           await processVideoForMathwa(
             video,
@@ -1117,6 +1115,115 @@ export default function NewListingForm({
       );
 
       return;
+    }
+
+    /*
+     * =============================
+     * TELEGRAM
+     * =============================
+     */
+
+    if (
+      status ===
+      "published"
+    ) {
+      setMediaStatus(
+        "Publication sur Telegram..."
+      );
+
+      setMediaProgress(
+        100
+      );
+
+      try {
+        const telegramResponse =
+          await fetch(
+            "/api/telegram/publish-listing",
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify(
+                  {
+                    listingId:
+                      listing.id,
+                  }
+                ),
+            }
+          );
+
+        const telegramResult =
+          (
+            await telegramResponse.json()
+          ) as TelegramPublishResponse;
+
+        if (
+          !telegramResponse.ok ||
+          !telegramResult.ok
+        ) {
+          const failedDetails =
+            (
+              telegramResult.results ??
+              []
+            )
+              .filter(
+                (
+                  result
+                ) =>
+                  !result.success
+              )
+              .map(
+                (
+                  result
+                ) =>
+                  `${result.locale}: ${result.error || "échec"}`
+              )
+              .join(
+                " | "
+              );
+
+          const telegramErrorMessage =
+            telegramResult.error ||
+            failedDetails ||
+            "La publication Telegram n'a pas pu être terminée.";
+
+          console.error(
+            "Erreur Telegram :",
+            telegramResult
+          );
+
+          window.alert(
+            `L'annonce a bien été publiée sur Mathwa, mais Telegram a rencontré une erreur : ${telegramErrorMessage}`
+          );
+        } else {
+          setMediaStatus(
+            "Annonce publiée sur Mathwa et Telegram ✅"
+          );
+        }
+      } catch (
+        telegramError
+      ) {
+        console.error(
+          "Erreur Telegram :",
+          telegramError
+        );
+
+        const telegramErrorMessage =
+          telegramError instanceof
+            Error
+            ? telegramError.message
+            : "Erreur Telegram inconnue.";
+
+        window.alert(
+          `L'annonce a bien été publiée sur Mathwa, mais Telegram a rencontré une erreur : ${telegramErrorMessage}`
+        );
+      }
     }
 
     router.replace(
