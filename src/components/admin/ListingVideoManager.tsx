@@ -13,11 +13,17 @@ import {
   createClient,
 } from "@/lib/supabase/client";
 
+import {
+  processVideoForMathwa,
+} from "@/lib/media/processVideo";
+
 type Props = {
   listingId: string;
+
   initialVideoPath:
     | string
     | null;
+
   initialVideoUrl:
     | string
     | null;
@@ -75,29 +81,92 @@ export default function ListingVideoManager({
   ] =
     useState("");
 
+  const [
+    status,
+    setStatus,
+  ] =
+    useState("");
+
+  const [
+    progress,
+    setProgress,
+  ] =
+    useState(0);
+
+  async function cleanupR2Key(
+    key: string
+  ) {
+    try {
+      await fetch(
+        "/api/r2/video",
+        {
+          method:
+            "DELETE",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body:
+            JSON.stringify({
+              listingId,
+              key,
+              clearDatabase:
+                false,
+            }),
+        }
+      );
+    } catch (
+      cleanupError
+    ) {
+      console.error(
+        "Erreur nettoyage R2 :",
+        cleanupError
+      );
+    }
+  }
+
   async function uploadVideo(
     event:
       ChangeEvent<HTMLInputElement>
   ) {
     const file =
-      event.target.files?.[0];
+      event.target
+        .files?.[0];
 
-    if (!file) {
+    if (
+      !file
+    ) {
       return;
     }
 
-    setError("");
+    setError(
+      ""
+    );
 
-    if (
-      ![
+    setStatus(
+      ""
+    );
+
+    setProgress(
+      0
+    );
+
+    const allowed =
+      [
         "video/mp4",
         "video/webm",
-      ].includes(
+        "video/quicktime",
+      ];
+
+    if (
+      !allowed.includes(
         file.type
       )
     ) {
       setError(
-        "Utilise une vidéo MP4 ou WebM."
+        "Utilise une vidéo MP4, WebM ou MOV."
       );
 
       event.target.value =
@@ -130,6 +199,39 @@ export default function ListingVideoManager({
       null;
 
     try {
+      /*
+       * 1.
+       * Compression + conversion MP4
+       * + filigrane dans le navigateur.
+       */
+
+      const processed =
+        await processVideoForMathwa(
+          file,
+          (
+            value,
+            label
+          ) => {
+            setProgress(
+              value
+            );
+
+            setStatus(
+              label
+            );
+          }
+        );
+
+      /*
+       * 2.
+       * Demande une URL R2 présignée
+       * pour LE fichier déjà traité.
+       */
+
+      setStatus(
+        "Préparation de l'envoi vers le stockage..."
+      );
+
       const signResponse =
         await fetch(
           "/api/r2/video",
@@ -145,12 +247,15 @@ export default function ListingVideoManager({
             body:
               JSON.stringify({
                 listingId,
+
                 fileName:
-                  file.name,
+                  processed.name,
+
                 contentType:
-                  file.type,
+                  processed.type,
+
                 fileSize:
-                  file.size,
+                  processed.size,
               }),
           }
         );
@@ -168,9 +273,25 @@ export default function ListingVideoManager({
       ) {
         throw new Error(
           signed.error ??
-          "Impossible de préparer l'envoi."
+            "Impossible de préparer l'envoi."
         );
       }
+
+      newKey =
+        signed.key;
+
+      /*
+       * 3.
+       * Upload direct vers R2.
+       */
+
+      setStatus(
+        "Envoi de la vidéo vers Cloudflare..."
+      );
+
+      setProgress(
+        98
+      );
 
       const uploadResponse =
         await fetch(
@@ -181,11 +302,11 @@ export default function ListingVideoManager({
 
             headers: {
               "Content-Type":
-                file.type,
+                processed.type,
             },
 
             body:
-              file,
+              processed,
           }
         );
 
@@ -197,8 +318,11 @@ export default function ListingVideoManager({
         );
       }
 
-      newKey =
-        signed.key;
+      /*
+       * 4.
+       * Enregistrement du nouveau chemin
+       * dans Supabase.
+       */
 
       const supabase =
         createClient();
@@ -237,33 +361,32 @@ export default function ListingVideoManager({
         signed.publicUrl
       );
 
+      newKey =
+        null;
+
+      /*
+       * 5.
+       * Supprime l'ancienne vidéo R2
+       * après que la nouvelle est prête.
+       */
+
       if (
         oldPath &&
         oldPath !==
           signed.key
       ) {
-        await fetch(
-          "/api/r2/video",
-          {
-            method:
-              "DELETE",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                listingId,
-                key:
-                  oldPath,
-                clearDatabase:
-                  false,
-              }),
-          }
+        await cleanupR2Key(
+          oldPath
         );
       }
+
+      setProgress(
+        100
+      );
+
+      setStatus(
+        "Vidéo compressée, filigranée et envoyée ✅"
+      );
 
       router.refresh();
     } catch (
@@ -272,28 +395,18 @@ export default function ListingVideoManager({
       if (
         newKey
       ) {
-        await fetch(
-          "/api/r2/video",
-          {
-            method:
-              "DELETE",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                listingId,
-                key:
-                  newKey,
-                clearDatabase:
-                  false,
-              }),
-          }
+        await cleanupR2Key(
+          newKey
         );
       }
+
+      setStatus(
+        ""
+      );
+
+      setProgress(
+        0
+      );
 
       setError(
         uploadError instanceof
@@ -337,6 +450,10 @@ export default function ListingVideoManager({
       ""
     );
 
+    setStatus(
+      "Suppression..."
+    );
+
     try {
       const response =
         await fetch(
@@ -353,8 +470,10 @@ export default function ListingVideoManager({
             body:
               JSON.stringify({
                 listingId,
+
                 key:
                   videoPath,
+
                 clearDatabase:
                   true,
               }),
@@ -369,7 +488,7 @@ export default function ListingVideoManager({
       ) {
         throw new Error(
           result.error ??
-          "Impossible de supprimer la vidéo."
+            "Impossible de supprimer la vidéo."
         );
       }
 
@@ -381,10 +500,22 @@ export default function ListingVideoManager({
         null
       );
 
+      setStatus(
+        ""
+      );
+
+      setProgress(
+        0
+      );
+
       router.refresh();
     } catch (
       deleteError
     ) {
+      setStatus(
+        ""
+      );
+
       setError(
         deleteError instanceof
           Error
@@ -414,22 +545,35 @@ export default function ListingVideoManager({
           </h2>
 
           <p className="mt-1 text-sm text-ink-soft">
-            MP4 ou WebM · 300 Mo maximum
+            MP4, WebM ou MOV · 300 Mo maximum
+          </p>
+
+          <p className="mt-1 max-w-xl text-xs leading-5 text-ink-soft/70">
+            Mathwa convertit automatiquement la vidéo en MP4,
+            la compresse et ajoute le filigrane avant l'envoi.
+            Pour les grosses vidéos, utilise de préférence un
+            ordinateur.
           </p>
 
         </div>
 
-        <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-green-700 px-5 py-3 text-sm font-medium text-paper transition hover:bg-green-800">
+        <label
+          className={`inline-flex items-center justify-center rounded-full bg-green-700 px-5 py-3 text-sm font-medium text-paper transition ${
+            loading
+              ? "cursor-not-allowed opacity-50"
+              : "cursor-pointer hover:bg-green-800"
+          }`}
+        >
 
           {loading
-            ? "Envoi..."
+            ? "Traitement..."
             : videoPath
               ? "Remplacer la vidéo"
               : "+ Ajouter une vidéo"}
 
           <input
             type="file"
-            accept="video/mp4,video/webm"
+            accept="video/mp4,video/webm,video/quicktime,.mov"
             disabled={
               loading
             }
@@ -442,6 +586,44 @@ export default function ListingVideoManager({
         </label>
 
       </div>
+
+      {loading &&
+        status && (
+          <div className="mt-6 rounded-2xl border border-green-700/10 bg-green-100/50 p-4">
+
+            <div className="flex items-center justify-between gap-4 text-sm">
+
+              <span className="text-green-900">
+                {status}
+              </span>
+
+              <span className="shrink-0 font-medium text-green-800">
+                {progress} %
+              </span>
+
+            </div>
+
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-green-900/10">
+
+              <div
+                className="h-full rounded-full bg-green-700 transition-all duration-300"
+                style={{
+                  width:
+                    `${progress}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+        )}
+
+      {!loading &&
+        status && (
+          <div className="mt-5 rounded-2xl bg-green-100 p-4 text-sm text-green-900">
+            {status}
+          </div>
+        )}
 
       {error && (
         <div className="mt-5 rounded-2xl bg-red-50 p-4 text-sm text-red-700">

@@ -2,9 +2,26 @@
 
 import DistrictSelect from "@/components/admin/DistrictSelect";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import {
+  FormEvent,
+  useState,
+} from "react";
+
+import {
+  useRouter,
+} from "next/navigation";
+
+import {
+  createClient,
+} from "@/lib/supabase/client";
+
+import {
+  processImageForMathwa,
+} from "@/lib/media/processImage";
+
+import {
+  processVideoForMathwa,
+} from "@/lib/media/processVideo";
 
 type Props = {
   locale: string;
@@ -17,279 +34,512 @@ type VideoPresignResponse = {
   error?: string;
 };
 
-const MAX_VIDEO_SIZE = 300 * 1024 * 1024;
+const MAX_VIDEO_SIZE =
+  300 *
+  1024 *
+  1024;
 
-const ALLOWED_VIDEO_TYPES = [
-  "video/mp4",
-  "video/webm",
-];
+const ALLOWED_VIDEO_TYPES =
+  [
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+  ];
 
-function createSlug(value: string) {
+function createSlug(
+  value: string
+) {
   return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .normalize(
+      "NFD"
+    )
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(
+      /[^a-z0-9]+/g,
+      "-"
+    )
+    .replace(
+      /^-+|-+$/g,
+      ""
+    );
 }
 
 export default function NewListingForm({
   locale,
 }: Props) {
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(false);
 
-  const [error, setError] = useState("");
+  const [
+    error,
+    setError,
+  ] =
+    useState("");
 
-  const [images, setImages] = useState<File[]>([]);
+  const [
+    images,
+    setImages,
+  ] =
+    useState<
+      File[]
+    >([]);
 
-  const [video, setVideo] = useState<File | null>(null);
+  const [
+    video,
+    setVideo,
+  ] =
+    useState<
+      File | null
+    >(null);
+
+  const [
+    mediaStatus,
+    setMediaStatus,
+  ] =
+    useState("");
+
+  const [
+    mediaProgress,
+    setMediaProgress,
+  ] =
+    useState(0);
 
   async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
+    event:
+      FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
-    setLoading(true);
-    setError("");
-
-    const form = new FormData(event.currentTarget);
-
-    const supabase = createClient();
-
-    const titleFr = String(
-      form.get("title_fr") || ""
-    ).trim();
-
-    const district = String(
-      form.get("district") || ""
-    ).trim();
-
-    const monthlyPriceRaw = String(
-      form.get("monthly_price") || ""
+    setLoading(
+      true
     );
 
-    const yearlyPriceRaw = String(
-      form.get("yearly_price") || ""
+    setError(
+      ""
     );
 
-    if (!titleFr || !district) {
+    setMediaStatus(
+      ""
+    );
+
+    setMediaProgress(
+      0
+    );
+
+    const form =
+      new FormData(
+        event.currentTarget
+      );
+
+    const supabase =
+      createClient();
+
+    const titleFr =
+      String(
+        form.get(
+          "title_fr"
+        ) ||
+          ""
+      ).trim();
+
+    const district =
+      String(
+        form.get(
+          "district"
+        ) ||
+          ""
+      ).trim();
+
+    const monthlyPriceRaw =
+      String(
+        form.get(
+          "monthly_price"
+        ) ||
+          ""
+      );
+
+    const yearlyPriceRaw =
+      String(
+        form.get(
+          "yearly_price"
+        ) ||
+          ""
+      );
+
+    if (
+      !titleFr ||
+      !district
+    ) {
       setError(
         "Le titre et le quartier sont obligatoires."
       );
 
-      setLoading(false);
+      setLoading(
+        false
+      );
 
       return;
     }
 
-    if (!monthlyPriceRaw && !yearlyPriceRaw) {
+    if (
+      !monthlyPriceRaw &&
+      !yearlyPriceRaw
+    ) {
       setError(
         "Indique au moins un prix mensuel ou annuel."
       );
 
-      setLoading(false);
+      setLoading(
+        false
+      );
 
       return;
     }
 
-    if (video) {
-      if (!ALLOWED_VIDEO_TYPES.includes(video.type)) {
+    if (
+      video
+    ) {
+      if (
+        !ALLOWED_VIDEO_TYPES.includes(
+          video.type
+        )
+      ) {
         setError(
-          "La vidéo doit être au format MP4 ou WebM."
+          "La vidéo doit être au format MP4, WebM ou MOV."
         );
 
-        setLoading(false);
+        setLoading(
+          false
+        );
 
         return;
       }
 
-      if (video.size > MAX_VIDEO_SIZE) {
+      if (
+        video.size >
+        MAX_VIDEO_SIZE
+      ) {
         setError(
           "La vidéo ne doit pas dépasser 300 Mo."
         );
 
-        setLoading(false);
+        setLoading(
+          false
+        );
 
         return;
       }
     }
 
-    const slugBase = createSlug(titleFr);
+    const slugBase =
+      createSlug(
+        titleFr
+      );
 
     const slug =
       `${slugBase}-${Date.now().toString().slice(-6)}`;
 
-    const status = String(
-      form.get("status") || "draft"
-    );
+    const status =
+      String(
+        form.get(
+          "status"
+        ) ||
+          "draft"
+      );
 
-    const listingData = {
-      slug,
-      status,
+    const listingData =
+      {
+        slug,
+        status,
 
-      district,
+        district,
 
-      location_label:
-        String(
-          form.get("location_label") || ""
-        ).trim() || null,
+        location_label:
+          String(
+            form.get(
+              "location_label"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      property_type: String(
-        form.get("property_type") || "apartment"
-      ),
+        property_type:
+          String(
+            form.get(
+              "property_type"
+            ) ||
+              "apartment"
+          ),
 
-      occupancy_type: String(
-        form.get("occupancy_type") || "private"
-      ),
+        occupancy_type:
+          String(
+            form.get(
+              "occupancy_type"
+            ) ||
+              "private"
+          ),
 
-      nabawi_distance_km:
-        String(
-          form.get("nabawi_distance_km") || ""
-        ) !== ""
-          ? Number(
-              form.get("nabawi_distance_km")
-            )
-          : null,
+        nabawi_distance_km:
+          String(
+            form.get(
+              "nabawi_distance_km"
+            ) ||
+              ""
+          ) !==
+          ""
+            ? Number(
+                form.get(
+                  "nabawi_distance_km"
+                )
+              )
+            : null,
 
-      bedrooms: Number(
-        form.get("bedrooms") || 0
-      ),
+        bedrooms:
+          Number(
+            form.get(
+              "bedrooms"
+            ) ||
+              0
+          ),
 
-      bathrooms: Number(
-        form.get("bathrooms") || 0
-      ),
+        bathrooms:
+          Number(
+            form.get(
+              "bathrooms"
+            ) ||
+              0
+          ),
 
-      living_rooms: Number(
-        form.get("living_rooms") || 0
-      ),
+        living_rooms:
+          Number(
+            form.get(
+              "living_rooms"
+            ) ||
+              0
+          ),
 
-      floor:
-        form.get("floor") !== ""
-          ? Number(
-              form.get("floor")
-            )
-          : null,
+        floor:
+          form.get(
+            "floor"
+          ) !==
+          ""
+            ? Number(
+                form.get(
+                  "floor"
+                )
+              )
+            : null,
 
-      area_m2:
-        form.get("area_m2") !== ""
-          ? Number(
-              form.get("area_m2")
-            )
-          : null,
+        area_m2:
+          form.get(
+            "area_m2"
+          ) !==
+          ""
+            ? Number(
+                form.get(
+                  "area_m2"
+                )
+              )
+            : null,
 
-      monthly_price:
-        monthlyPriceRaw
-          ? Number(
-              monthlyPriceRaw
-            )
-          : null,
+        monthly_price:
+          monthlyPriceRaw
+            ? Number(
+                monthlyPriceRaw
+              )
+            : null,
 
-      yearly_price:
-        yearlyPriceRaw
-          ? Number(
-              yearlyPriceRaw
-            )
-          : null,
+        yearly_price:
+          yearlyPriceRaw
+            ? Number(
+                yearlyPriceRaw
+              )
+            : null,
 
-      deposit:
-        form.get("deposit") !== ""
-          ? Number(
-              form.get("deposit")
-            )
-          : null,
+        deposit:
+          form.get(
+            "deposit"
+          ) !==
+          ""
+            ? Number(
+                form.get(
+                  "deposit"
+                )
+              )
+            : null,
 
-      furnished:
-        form.get("furnished") === "on",
+        furnished:
+          form.get(
+            "furnished"
+          ) ===
+          "on",
 
-      water_included:
-        form.get("water_included") === "on",
+        water_included:
+          form.get(
+            "water_included"
+          ) ===
+          "on",
 
-      electricity_included:
-        form.get("electricity_included") === "on",
+        electricity_included:
+          form.get(
+            "electricity_included"
+          ) ===
+          "on",
 
-      internet_included:
-        form.get("internet_included") === "on",
+        internet_included:
+          form.get(
+            "internet_included"
+          ) ===
+          "on",
 
-      cleaning_included:
-        form.get("cleaning_included") === "on",
+        cleaning_included:
+          form.get(
+            "cleaning_included"
+          ) ===
+          "on",
 
-      air_conditioning:
-        form.get("air_conditioning") === "on",
+        air_conditioning:
+          form.get(
+            "air_conditioning"
+          ) ===
+          "on",
 
-      elevator:
-        form.get("elevator") === "on",
+        elevator:
+          form.get(
+            "elevator"
+          ) ===
+          "on",
 
-      parking:
-        form.get("parking") === "on",
+        parking:
+          form.get(
+            "parking"
+          ) ===
+          "on",
 
-      kitchen:
-        form.get("kitchen") === "on",
+        kitchen:
+          form.get(
+            "kitchen"
+          ) ===
+          "on",
 
-      verified:
-        form.get("verified") === "on",
+        verified:
+          form.get(
+            "verified"
+          ) ===
+          "on",
 
-      featured:
-        form.get("featured") === "on",
+        featured:
+          form.get(
+            "featured"
+          ) ===
+          "on",
 
-      title_fr:
-        titleFr,
+        title_fr:
+          titleFr,
 
-      title_ar:
-        String(
-          form.get("title_ar") || ""
-        ).trim() || null,
+        title_ar:
+          String(
+            form.get(
+              "title_ar"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      title_en:
-        String(
-          form.get("title_en") || ""
-        ).trim() || null,
+        title_en:
+          String(
+            form.get(
+              "title_en"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      title_ru:
-        String(
-          form.get("title_ru") || ""
-        ).trim() || null,
+        title_ru:
+          String(
+            form.get(
+              "title_ru"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      description_fr:
-        String(
-          form.get("description_fr") || ""
-        ).trim() || null,
+        description_fr:
+          String(
+            form.get(
+              "description_fr"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      description_ar:
-        String(
-          form.get("description_ar") || ""
-        ).trim() || null,
+        description_ar:
+          String(
+            form.get(
+              "description_ar"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      description_en:
-        String(
-          form.get("description_en") || ""
-        ).trim() || null,
+        description_en:
+          String(
+            form.get(
+              "description_en"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      description_ru:
-        String(
-          form.get("description_ru") || ""
-        ).trim() || null,
+        description_ru:
+          String(
+            form.get(
+              "description_ru"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      available_from:
-        String(
-          form.get("available_from") || ""
-        ) || null,
+        available_from:
+          String(
+            form.get(
+              "available_from"
+            ) ||
+              ""
+          ) ||
+          null,
 
-      published_at:
-        status === "published"
-          ? new Date().toISOString()
-          : null,
-    };
+        published_at:
+          status ===
+          "published"
+            ? new Date().toISOString()
+            : null,
+      };
 
     const {
-      data: listing,
-      error: listingError,
+      data:
+        listing,
+      error:
+        listingError,
     } =
       await supabase
-        .from("listings")
-        .insert(listingData)
+        .from(
+          "listings"
+        )
+        .insert(
+          listingData
+        )
         .select(
           "id, reference, slug"
         )
@@ -308,75 +558,120 @@ export default function NewListingForm({
           "Impossible de créer l'annonce."
       );
 
-      setLoading(false);
+      setLoading(
+        false
+      );
 
       return;
     }
 
-    const privateData = {
-      listing_id:
-        listing.id,
+    const privateData =
+      {
+        listing_id:
+          listing.id,
 
-      exact_address:
-        String(
-          form.get("exact_address") || ""
-        ).trim() || null,
+        exact_address:
+          String(
+            form.get(
+              "exact_address"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      owner_name:
-        String(
-          form.get("owner_name") || ""
-        ).trim() || null,
+        owner_name:
+          String(
+            form.get(
+              "owner_name"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      owner_phone:
-        String(
-          form.get("owner_phone") || ""
-        ).trim() || null,
+        owner_phone:
+          String(
+            form.get(
+              "owner_phone"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      owner_whatsapp:
-        String(
-          form.get("owner_whatsapp") || ""
-        ).trim() || null,
+        owner_whatsapp:
+          String(
+            form.get(
+              "owner_whatsapp"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      owner_notes:
-        String(
-          form.get("owner_notes") || ""
-        ).trim() || null,
+        owner_notes:
+          String(
+            form.get(
+              "owner_notes"
+            ) ||
+              ""
+          ).trim() ||
+          null,
 
-      commission_type:
-        String(
-          form.get("commission_type") || ""
-        ) || null,
+        commission_type:
+          String(
+            form.get(
+              "commission_type"
+            ) ||
+              ""
+          ) ||
+          null,
 
-      commission_value:
-        form.get("commission_value") !== ""
-          ? Number(
-              form.get("commission_value")
-            )
-          : null,
+        commission_value:
+          form.get(
+            "commission_value"
+          ) !==
+          ""
+            ? Number(
+                form.get(
+                  "commission_value"
+                )
+              )
+            : null,
 
-      commission_status:
-        "pending",
+        commission_status:
+          "pending",
 
-      private_notes:
-        String(
-          form.get("private_notes") || ""
-        ).trim() || null,
-    };
+        private_notes:
+          String(
+            form.get(
+              "private_notes"
+            ) ||
+              ""
+          ).trim() ||
+          null,
+      };
 
     const {
-      error: privateError,
+      error:
+        privateError,
     } =
       await supabase
-        .from("listing_private")
-        .insert(privateData);
+        .from(
+          "listing_private"
+        )
+        .insert(
+          privateData
+        );
 
-    if (privateError) {
+    if (
+      privateError
+    ) {
       console.error(
         privateError
       );
 
       await supabase
-        .from("listings")
+        .from(
+          "listings"
+        )
         .delete()
         .eq(
           "id",
@@ -387,7 +682,9 @@ export default function NewListingForm({
         privateError.message
       );
 
-      setLoading(false);
+      setLoading(
+        false
+      );
 
       return;
     }
@@ -397,7 +694,8 @@ export default function NewListingForm({
       [];
 
     let uploadedVideoPath:
-      string | null =
+      | string
+      | null =
       null;
 
     try {
@@ -408,57 +706,60 @@ export default function NewListingForm({
        */
 
       for (
-        let index = 0;
-        index < images.length;
+        let index =
+          0;
+        index <
+        images.length;
         index++
       ) {
         const file =
-          images[index];
+          images[
+            index
+          ];
 
-        if (
-          file.size >
-          10 *
-            1024 *
-            1024
-        ) {
-          throw new Error(
-            `L'image "${file.name}" dépasse 10 Mo.`
+        setMediaStatus(
+          `Traitement de la photo ${index + 1}/${images.length}...`
+        );
+
+        setMediaProgress(
+          images.length >
+          0
+            ? Math.round(
+                (
+                  index /
+                  images.length
+                ) *
+                  40
+              )
+            : 0
+        );
+
+        /*
+         * Transformation automatique :
+         * - redimensionnement
+         * - filigrane
+         * - WebP
+         * - compression
+         */
+        const processedImage =
+          await processImageForMathwa(
+            file
           );
-        }
 
-        const allowedTypes = [
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "image/avif",
-        ];
-
-        if (
-          !allowedTypes.includes(
-            file.type
-          )
-        ) {
-          throw new Error(
-            `Format non accepté : ${file.name}`
-          );
-        }
-
-        const extension =
-          file.name
-            .split(".")
-            .pop()
-            ?.toLowerCase() ||
-          "jpg";
+        setMediaStatus(
+          `Envoi de la photo ${index + 1}/${images.length}...`
+        );
 
         const storagePath =
           `${listing.id}/` +
           `${String(
-            index + 1
+            index +
+              1
           ).padStart(
             2,
             "0"
           )}-` +
-          `${crypto.randomUUID()}.${extension}`;
+          `${crypto.randomUUID()}.webp`;
 
         const {
           error:
@@ -470,7 +771,7 @@ export default function NewListingForm({
             )
             .upload(
               storagePath,
-              file,
+              processedImage,
               {
                 cacheControl:
                   "3600",
@@ -479,7 +780,7 @@ export default function NewListingForm({
                   false,
 
                 contentType:
-                  file.type,
+                  "image/webp",
               }
             );
 
@@ -491,6 +792,22 @@ export default function NewListingForm({
 
         uploadedPaths.push(
           storagePath
+        );
+
+        setMediaProgress(
+          images.length >
+          0
+            ? Math.round(
+                (
+                  (
+                    index +
+                    1
+                  ) /
+                  images.length
+                ) *
+                  40
+              )
+            : 40
         );
       }
 
@@ -514,7 +831,8 @@ export default function NewListingForm({
                 index,
 
               is_cover:
-                index === 0,
+                index ===
+                0,
             })
           );
 
@@ -539,11 +857,49 @@ export default function NewListingForm({
 
       /*
        * =============================
-       * VIDÉO R2
+       * VIDÉO
        * =============================
        */
 
-      if (video) {
+      if (
+        video
+      ) {
+        /*
+         * Transformation locale avec FFmpeg :
+         * - MP4
+         * - H.264
+         * - compression
+         * - watermark
+         */
+        const processedVideo =
+          await processVideoForMathwa(
+            video,
+            (
+              progress,
+              label
+            ) => {
+              setMediaStatus(
+                label
+              );
+
+              setMediaProgress(
+                45 +
+                  Math.round(
+                    progress *
+                      0.45
+                  )
+              );
+            }
+          );
+
+        setMediaStatus(
+          "Préparation de l'envoi de la vidéo..."
+        );
+
+        setMediaProgress(
+          92
+        );
+
         const signResponse =
           await fetch(
             "/api/r2/video",
@@ -551,25 +907,28 @@ export default function NewListingForm({
               method:
                 "POST",
 
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
+              headers:
+                {
+                  "Content-Type":
+                    "application/json",
+                },
 
               body:
-                JSON.stringify({
-                  listingId:
-                    listing.id,
+                JSON.stringify(
+                  {
+                    listingId:
+                      listing.id,
 
-                  fileName:
-                    video.name,
+                    fileName:
+                      processedVideo.name,
 
-                  contentType:
-                    video.type,
+                    contentType:
+                      processedVideo.type,
 
-                  fileSize:
-                    video.size,
-                }),
+                    fileSize:
+                      processedVideo.size,
+                  }
+                ),
             }
           );
 
@@ -589,6 +948,14 @@ export default function NewListingForm({
           );
         }
 
+        setMediaStatus(
+          "Envoi de la vidéo vers Cloudflare..."
+        );
+
+        setMediaProgress(
+          96
+        );
+
         const uploadVideoResponse =
           await fetch(
             signed.uploadUrl,
@@ -596,13 +963,14 @@ export default function NewListingForm({
               method:
                 "PUT",
 
-              headers: {
-                "Content-Type":
-                  video.type,
-              },
+              headers:
+                {
+                  "Content-Type":
+                    processedVideo.type,
+                },
 
               body:
-                video,
+                processedVideo,
             }
           );
 
@@ -639,6 +1007,25 @@ export default function NewListingForm({
         ) {
           throw videoDatabaseError;
         }
+
+        setMediaProgress(
+          100
+        );
+
+        setMediaStatus(
+          "Médias traités et envoyés ✅"
+        );
+      } else if (
+        images.length >
+        0
+      ) {
+        setMediaProgress(
+          100
+        );
+
+        setMediaStatus(
+          "Photos traitées et envoyées ✅"
+        );
       }
     } catch (
       uploadError
@@ -646,11 +1033,6 @@ export default function NewListingForm({
       console.error(
         uploadError
       );
-
-      /*
-       * On nettoie la vidéo R2
-       * si elle avait déjà été envoyée.
-       */
 
       if (
         uploadedVideoPath
@@ -662,22 +1044,25 @@ export default function NewListingForm({
               method:
                 "DELETE",
 
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
+              headers:
+                {
+                  "Content-Type":
+                    "application/json",
+                },
 
               body:
-                JSON.stringify({
-                  listingId:
-                    listing.id,
+                JSON.stringify(
+                  {
+                    listingId:
+                      listing.id,
 
-                  key:
-                    uploadedVideoPath,
+                    key:
+                      uploadedVideoPath,
 
-                  clearDatabase:
-                    false,
-                }),
+                    clearDatabase:
+                      false,
+                  }
+                ),
             }
           );
         } catch (
@@ -688,10 +1073,6 @@ export default function NewListingForm({
           );
         }
       }
-
-      /*
-       * On nettoie les photos.
-       */
 
       if (
         uploadedPaths.length >
@@ -705,11 +1086,6 @@ export default function NewListingForm({
             uploadedPaths
           );
       }
-
-      /*
-       * Puis on supprime
-       * l'annonce créée.
-       */
 
       await supabase
         .from(
@@ -728,7 +1104,17 @@ export default function NewListingForm({
           : "Erreur pendant l'envoi des médias."
       );
 
-      setLoading(false);
+      setMediaStatus(
+        ""
+      );
+
+      setMediaProgress(
+        0
+      );
+
+      setLoading(
+        false
+      );
 
       return;
     }
@@ -756,9 +1142,6 @@ export default function NewListingForm({
       }
       className="space-y-8"
     >
-      {/* =========================
-          INFORMATIONS
-      ========================= */}
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
@@ -949,10 +1332,6 @@ export default function NewListingForm({
 
       </section>
 
-      {/* =========================
-          PRIX
-      ========================= */}
-
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
         <h2 className="font-display text-2xl text-ink">
@@ -1006,10 +1385,6 @@ export default function NewListingForm({
         </div>
 
       </section>
-
-      {/* =========================
-          ÉQUIPEMENTS
-      ========================= */}
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
@@ -1116,10 +1491,6 @@ export default function NewListingForm({
 
       </section>
 
-      {/* =========================
-          PHOTOS
-      ========================= */}
-
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
         <h2 className="font-display text-2xl text-ink">
@@ -1127,7 +1498,7 @@ export default function NewListingForm({
         </h2>
 
         <p className="mt-2 text-sm text-ink-soft">
-          La première photo sera la couverture.
+          La première photo sera la couverture. Mathwa convertit automatiquement les images en WebP, les compresse et ajoute le filigrane.
         </p>
 
         <input
@@ -1171,10 +1542,6 @@ export default function NewListingForm({
 
       </section>
 
-      {/* =========================
-          VIDÉO
-      ========================= */}
-
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
         <div>
@@ -1188,15 +1555,16 @@ export default function NewListingForm({
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-ink-soft">
-            Facultatif · MP4 ou WebM · 300 Mo maximum.
-            La vidéo apparaîtra à côté des photos avec le bouton Play.
+            Facultatif · MP4, WebM ou MOV · 300 Mo maximum.
+            Mathwa convertit automatiquement la vidéo en MP4,
+            la compresse et ajoute le filigrane avant l'envoi.
           </p>
 
         </div>
 
         <input
           type="file"
-          accept="video/mp4,video/webm"
+          accept="video/mp4,video/webm,video/quicktime,.mov"
           disabled={
             loading
           }
@@ -1258,11 +1626,40 @@ export default function NewListingForm({
 
         )}
 
-      </section>
+        {loading &&
+          mediaStatus && (
 
-      {/* =========================
-          TRADUCTIONS
-      ========================= */}
+          <div className="mt-5 rounded-2xl border border-green-700/10 bg-green-100/50 p-4">
+
+            <div className="flex items-center justify-between gap-4 text-sm">
+
+              <span className="text-green-900">
+                {mediaStatus}
+              </span>
+
+              <span className="shrink-0 font-medium text-green-800">
+                {mediaProgress}%
+              </span>
+
+            </div>
+
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-green-900/10">
+
+              <div
+                className="h-full rounded-full bg-green-700 transition-all duration-300"
+                style={{
+                  width:
+                    `${mediaProgress}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        )}
+
+      </section>
 
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
@@ -1354,10 +1751,6 @@ export default function NewListingForm({
         </div>
 
       </section>
-
-      {/* =========================
-          PROPRIÉTAIRE
-      ========================= */}
 
       <section className="rounded-3xl border border-gold/30 bg-paper p-6 sm:p-8">
 
@@ -1487,10 +1880,6 @@ export default function NewListingForm({
 
       </section>
 
-      {/* =========================
-          STATUT
-      ========================= */}
-
       <section className="rounded-3xl border border-ink/10 bg-paper p-6 sm:p-8">
 
         <label className="block text-sm font-medium text-ink">
@@ -1545,9 +1934,8 @@ export default function NewListingForm({
           className="rounded-full bg-green-700 px-8 py-3 text-sm font-medium text-paper transition-colors hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading
-            ? video
-              ? "Envoi des photos et de la vidéo..."
-              : "Enregistrement..."
+            ? mediaStatus ||
+              "Enregistrement..."
             : "Enregistrer l'appartement"}
         </button>
 

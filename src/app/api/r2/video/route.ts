@@ -44,7 +44,9 @@ async function checkAdmin() {
   } =
     await supabase.auth.getUser();
 
-  if (!user) {
+  if (
+    !user
+  ) {
     return {
       supabase,
       allowed:
@@ -62,6 +64,7 @@ async function checkAdmin() {
 
   return {
     supabase,
+
     allowed:
       Boolean(
         isAdmin
@@ -75,7 +78,9 @@ function safeExtension(
 ) {
   const extension =
     fileName
-      .split(".")
+      .split(
+        "."
+      )
       .pop()
       ?.toLowerCase();
 
@@ -107,6 +112,19 @@ function safeExtension(
   return "mp4";
 }
 
+function keyBelongsToListing(
+  listingId: string,
+  key: string
+) {
+  return key.startsWith(
+    `listings/${listingId}/`
+  );
+}
+
+/* =========================================
+   CRÉER UNE URL D'UPLOAD R2
+========================================= */
+
 export async function POST(
   request: Request
 ) {
@@ -116,7 +134,9 @@ export async function POST(
     } =
       await checkAdmin();
 
-    if (!allowed) {
+    if (
+      !allowed
+    ) {
       return NextResponse.json(
         {
           error:
@@ -245,6 +265,7 @@ export async function POST(
     return NextResponse.json({
       uploadUrl,
       key,
+
       publicUrl:
         getR2PublicUrl(
           key
@@ -254,6 +275,7 @@ export async function POST(
     error
   ) {
     console.error(
+      "Erreur POST R2 :",
       error
     );
 
@@ -273,6 +295,10 @@ export async function POST(
   }
 }
 
+/* =========================================
+   SUPPRIMER UNE VIDÉO R2
+========================================= */
+
 export async function DELETE(
   request: Request
 ) {
@@ -283,7 +309,9 @@ export async function DELETE(
     } =
       await checkAdmin();
 
-    if (!allowed) {
+    if (
+      !allowed
+    ) {
       return NextResponse.json(
         {
           error:
@@ -305,7 +333,19 @@ export async function DELETE(
           ""
       ).trim();
 
-    if (!listingId) {
+    const requestedKey =
+      String(
+        body.key ??
+          ""
+      ).trim();
+
+    const clearDatabase =
+      body.clearDatabase !==
+      false;
+
+    if (
+      !listingId
+    ) {
       return NextResponse.json(
         {
           error:
@@ -318,32 +358,73 @@ export async function DELETE(
       );
     }
 
-    const {
-      data:
-        listing,
-      error:
-        listingError,
-    } =
-      await supabase
-        .from(
-          "listings"
-        )
-        .select(
-          "video_path"
-        )
-        .eq(
-          "id",
-          listingId
-        )
-        .single();
+    let databaseVideoPath:
+      | string
+      | null =
+      null;
+
+    /*
+     * On lit la BDD uniquement si nécessaire.
+     */
 
     if (
-      listingError
+      !requestedKey ||
+      clearDatabase
+    ) {
+      const {
+        data:
+          listing,
+        error:
+          listingError,
+      } =
+        await supabase
+          .from(
+            "listings"
+          )
+          .select(
+            "video_path"
+          )
+          .eq(
+            "id",
+            listingId
+          )
+          .single();
+
+      if (
+        listingError
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              listingError.message,
+          },
+          {
+            status:
+              400,
+          }
+        );
+      }
+
+      databaseVideoPath =
+        listing?.video_path ??
+        null;
+    }
+
+    const targetKey =
+      requestedKey ||
+      databaseVideoPath;
+
+    if (
+      targetKey &&
+      !keyBelongsToListing(
+        listingId,
+        targetKey
+      )
     ) {
       return NextResponse.json(
         {
           error:
-            listingError.message,
+            "Chemin vidéo invalide.",
         },
         {
           status:
@@ -352,11 +433,8 @@ export async function DELETE(
       );
     }
 
-    const videoPath =
-      listing?.video_path;
-
     if (
-      videoPath
+      targetKey
     ) {
       await r2.send(
         new DeleteObjectCommand({
@@ -364,41 +442,45 @@ export async function DELETE(
             R2_BUCKET_NAME,
 
           Key:
-            videoPath,
+            targetKey,
         })
       );
     }
 
-    const {
-      error:
-        updateError,
-    } =
-      await supabase
-        .from(
-          "listings"
-        )
-        .update({
-          video_path:
-            null,
-        })
-        .eq(
-          "id",
-          listingId
-        );
-
     if (
-      updateError
+      clearDatabase
     ) {
-      return NextResponse.json(
-        {
-          error:
-            updateError.message,
-        },
-        {
-          status:
-            400,
-        }
-      );
+      const {
+        error:
+          updateError,
+      } =
+        await supabase
+          .from(
+            "listings"
+          )
+          .update({
+            video_path:
+              null,
+          })
+          .eq(
+            "id",
+            listingId
+          );
+
+      if (
+        updateError
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              updateError.message,
+          },
+          {
+            status:
+              400,
+          }
+        );
+      }
     }
 
     return NextResponse.json({
@@ -409,6 +491,7 @@ export async function DELETE(
     error
   ) {
     console.error(
+      "Erreur DELETE R2 :",
       error
     );
 
